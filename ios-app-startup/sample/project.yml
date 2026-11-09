@@ -1,0 +1,24 @@
+# XcodeGen spec: generates LaunchLab.xcodeproj
+#   brew install xcodegen
+#   cd sample && xcodegen generate && open LaunchLab.xcodeproj
+name: LaunchLab
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "16.0"
+targets:
+  LaunchLab:
+    type: application
+    platform: iOS
+    sources:
+      - path: LaunchLab
+        excludes:
+          - Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.launchlab
+        INFOPLIST_FILE: LaunchLab/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic

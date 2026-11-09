@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iOS Launch Sequence</title>
+<meta name="description" content="Step through the UIKit app startup sequence (AppDelegate, SceneDelegate, UIWindow, root view controller, view controller lifecycle) lane by lane, with the LaunchLab sample app.">
+<style>
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #eef0f4;
+  --text: #16181d;
+  --muted: #5b6270;
+  --border: #d9dde5;
+  --accent: #4f46e5;
+  --accent-ink: #ffffff;
+  --code-bg: #f1f3f7;
+  --lane-system: #6b7280;
+  --lane-app: #2563eb;
+  --lane-scene: #9333ea;
+  --lane-window: #d97706;
+  --lane-vc: #16a34a;
+  --phone-frame: #1c1d21;
+  --phone-screen: #ffffff;
+  --phone-text: #111;
+  --phone-muted: #6b7280;
+  --shadow: 0 1px 2px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1115; --surface: #171a20; --surface-2: #1f232b; --text: #e8eaef; --muted: #9aa3b2;
+    --border: #2b303a; --accent: #818cf8; --accent-ink: #0f1115; --code-bg: #1d2129;
+    --lane-system: #9ca3af; --lane-app: #60a5fa; --lane-scene: #c084fc; --lane-window: #fbbf24; --lane-vc: #4ade80;
+    --phone-frame: #000; --phone-screen: #0b0b0d; --phone-text: #f2f2f7; --phone-muted: #8e8e93;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1115; --surface: #171a20; --surface-2: #1f232b; --text: #e8eaef; --muted: #9aa3b2;
+  --border: #2b303a; --accent: #818cf8; --accent-ink: #0f1115; --code-bg: #1d2129;
+  --lane-system: #9ca3af; --lane-app: #60a5fa; --lane-scene: #c084fc; --lane-window: #fbbf24; --lane-vc: #4ade80;
+  --phone-frame: #000; --phone-screen: #0b0b0d; --phone-text: #f2f2f7; --phone-muted: #8e8e93;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 15px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow-x: hidden;
+}
+code, pre, .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 24px 16px 48px; }
+header h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+header p { margin: 0 0 18px; color: var(--muted); max-width: 760px; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.tab {
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  padding: 7px 12px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 14px;
+}
+.tab[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.tab:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.scenario-desc { color: var(--muted); margin: 0 0 16px; min-height: 1.5em; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .phone-col { order: -1; position: static; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; }
+}
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
+
+/* Controls */
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px; }
+.btn {
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  padding: 7px 12px; border-radius: 9px; cursor: pointer; font: inherit; font-size: 14px;
+}
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn:disabled { opacity: .45; cursor: default; }
+.counter { margin-left: auto; color: var(--muted); font-size: 13px; }
+.progress { height: 3px; background: var(--surface-2); border-radius: 0 0 14px 14px; overflow: hidden; }
+.progress > div { height: 100%; background: var(--accent); width: 0; transition: width .25s ease; }
+
+/* Swimlanes */
+.lanes { margin-top: 16px; overflow: hidden; }
+.lane-head, .lane-row { display: grid; grid-template-columns: 34px repeat(5, minmax(0, 1fr)); }
+.lane-head { border-bottom: 1px solid var(--border); background: var(--surface-2); border-radius: 14px 14px 0 0; }
+.lane-head div { padding: 9px 6px; font-size: 12px; font-weight: 600; text-align: center; }
+.lane-head .l-system { color: var(--lane-system); } .lane-head .l-app { color: var(--lane-app); }
+.lane-head .l-scene { color: var(--lane-scene); } .lane-head .l-window { color: var(--lane-window); }
+.lane-head .l-vc { color: var(--lane-vc); }
+.lane-body { max-height: 420px; overflow-y: auto; }
+.lane-row { border-bottom: 1px dashed var(--border); cursor: pointer; }
+.lane-row:last-child { border-bottom: 0; }
+.lane-row > div { padding: 5px 6px; min-height: 34px; display: flex; align-items: center; }
+.lane-row > div:not(:first-child) { border-left: 1px solid var(--border); }
+.lane-row .num { justify-content: center; color: var(--muted); font-size: 12px; }
+.chip {
+  font-size: 12px; line-height: 1.3; padding: 4px 7px; border-radius: 7px; width: 100%;
+  border: 1px solid currentColor; background: transparent; overflow-wrap: break-word;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+.chip.system { color: var(--lane-system); } .chip.app { color: var(--lane-app); }
+.chip.scene { color: var(--lane-scene); } .chip.window { color: var(--lane-window); } .chip.vc { color: var(--lane-vc); }
+.lane-row.future { opacity: .28; }
+.lane-row.current { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.lane-row.current .chip { background: color-mix(in srgb, currentColor 14%, transparent); font-weight: 600; }
+
+@media (max-width: 640px) {
+  .lane-head { display: none; }
+  .lane-row { grid-template-columns: 30px minmax(0, 1fr); }
+  .lane-row > div.empty { display: none; }
+  .lane-row > div:not(:first-child) { border-left: 0; }
+  .chip::before { content: attr(data-lane) " · "; font-weight: 600; }
+}
+
+/* Detail */
+.detail { margin-top: 16px; padding: 16px; }
+.detail .lane-tag { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.detail h2 { margin: 2px 0 8px; font-size: 18px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+.detail p { margin: 0 0 10px; }
+.detail pre {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+  overflow-x: auto; font-size: 12.5px; line-height: 1.5; margin: 0 0 10px; white-space: pre;
+}
+.detail .tip { font-size: 13.5px; color: var(--muted); border-left: 3px solid var(--accent); padding-left: 10px; }
+.detail .deep { font-size: 13px; }
+.detail .deep a { color: var(--accent); }
+
+/* Phone */
+.phone-col { position: sticky; top: 16px; }
+.phone {
+  width: 240px; height: 490px; margin: 0 auto; background: var(--phone-frame); border-radius: 40px;
+  padding: 11px; box-shadow: var(--shadow); position: relative;
+}
+.screen {
+  width: 100%; height: 100%; border-radius: 30px; background: var(--phone-screen); color: var(--phone-text);
+  overflow: hidden; position: relative; font-size: 12px;
+}
+.island { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 70px; height: 20px; background: #000; border-radius: 12px; z-index: 5; }
+.view { position: absolute; inset: 0; padding: 40px 14px 14px; display: none; flex-direction: column; animation: fade .25s ease; }
+.view.on { display: flex; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.homegrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 10px; margin-top: 10px; }
+.icon { aspect-ratio: 1; border-radius: 11px; background: var(--phone-muted); opacity: .35; }
+.icon.app { opacity: 1; background: linear-gradient(135deg, #6366f1, #22d3ee); position: relative; }
+.icon.app.tapped { transform: scale(.88); transition: transform .15s; }
+.icon-label { font-size: 9px; text-align: center; color: var(--phone-text); margin-top: -10px; }
+.ob { align-items: center; justify-content: center; text-align: center; gap: 10px; }
+.ob .logo { width: 54px; height: 54px; border-radius: 50%; background: #6366f1; }
+.ob h3 { margin: 0; font-size: 16px; }
+.ob p { margin: 0; color: var(--phone-muted); font-size: 11px; }
+.pill-btn { background: #4f46e5; color: #fff; border-radius: 10px; padding: 8px 18px; font-size: 12px; font-weight: 600; }
+.navtitle { font-size: 18px; font-weight: 700; margin: 4px 0 8px; }
+.rows { display: flex; flex-direction: column; gap: 5px; flex: 1; overflow: hidden; }
+.rowx { background: color-mix(in srgb, var(--phone-muted) 14%, transparent); border-radius: 8px; padding: 6px 8px; font-size: 10px; font-family: ui-monospace, Menlo, monospace; }
+.tabbar { display: flex; justify-content: space-around; border-top: 1px solid color-mix(in srgb, var(--phone-muted) 30%, transparent); padding-top: 6px; font-size: 10px; color: var(--phone-muted); }
+.tabbar .sel { color: #4f46e5; font-weight: 700; }
+.labbtn { background: color-mix(in srgb, #4f46e5 14%, transparent); color: #4f46e5; border-radius: 9px; padding: 8px; font-size: 11px; text-align: center; font-weight: 600; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; top: 70px; background: var(--phone-screen); border-radius: 16px 16px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,.25); padding: 14px; display: none; }
+.sheet.on { display: block; animation: up .3s ease; }
+@keyframes up { from { transform: translateY(100%); } to { transform: none; } }
+.dim { position: absolute; inset: 0; background: rgba(0,0,0,.35); display: none; }
+.dim.on { display: block; }
+.status { margin-top: 14px; padding: 12px; display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; font-size: 13px; }
+.status dt { color: var(--muted); }
+.status dd { margin: 0; font-weight: 600; min-width: 0; }
+.badge { display: inline-block; max-width: 100%; overflow-wrap: anywhere; padding: 1px 8px; border-radius: 999px; font-size: 12px; background: var(--surface-2); border: 1px solid var(--border); }
+
+/* Console */
+.console { margin-top: 16px; }
+.console h3 { margin: 0; padding: 10px 14px; font-size: 13px; color: var(--muted); border-bottom: 1px solid var(--border); }
+.console ol { list-style: none; margin: 0; padding: 8px 14px; max-height: 220px; overflow-y: auto; font-size: 12px; }
+.console li { padding: 2px 0; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+.console li .ly { display: inline-block; min-width: 58px; font-weight: 600; }
+.console li.new { animation: flash .6s ease; }
+@keyframes flash { from { background: color-mix(in srgb, var(--accent) 22%, transparent); } to { background: transparent; } }
+.ly.system { color: var(--lane-system); } .ly.app { color: var(--lane-app); } .ly.scene { color: var(--lane-scene); }
+.ly.window { color: var(--lane-window); } .ly.vc { color: var(--lane-vc); }
+footer { margin-top: 24px; color: var(--muted); font-size: 13px; }
+footer a { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+@media (max-width: 900px) {
+  .phone { width: 170px; height: 350px; border-radius: 30px; padding: 8px; margin: 0; }
+  .screen { border-radius: 23px; font-size: 10px; }
+  .status { margin-top: 0; grid-template-columns: 1fr; }
+}
+@media (max-width: 420px) { .phone { width: 150px; height: 310px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>iOS App Startup: Launch Sequence Explorer</h1>
+    <p>Step through what UIKit calls, in which layer, and what the user sees. The rows match what the <strong>LaunchLab</strong> sample app logs. Use <kbd>←</kbd> <kbd>→</kbd> or <kbd>Space</kbd> to step and play, or click any row to jump to it.</p>
+  </header>
+
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <p class="scenario-desc" id="scenarioDesc"></p>
+
+  <div class="layout">
+    <main>
+      <div class="card">
+        <div class="controls">
+          <button class="btn" id="reset" title="Back to start">⏮ Reset</button>
+          <button class="btn" id="prev" title="Previous step (←)">◀ Prev</button>
+          <button class="btn primary" id="play" title="Play / pause (Space)">▶ Play</button>
+          <button class="btn" id="next" title="Next step (→)">Next ▶</button>
+          <span class="counter" id="counter"></span>
+        </div>
+        <div class="progress"><div id="bar"></div></div>
+      </div>
+
+      <section class="card detail" id="detail" aria-live="polite"></section>
+
+      <div class="card lanes">
+        <div class="lane-head">
+          <div></div>
+          <div class="l-system">System</div>
+          <div class="l-app">AppDelegate</div>
+          <div class="l-scene">SceneDelegate</div>
+          <div class="l-window">UIWindow</div>
+          <div class="l-vc">View Controller</div>
+        </div>
+        <div class="lane-body" id="laneBody"></div>
+      </div>
+
+      <section class="card console">
+        <h3>LaunchLab Timeline (what the sample app would log)</h3>
+        <ol id="log"></ol>
+      </section>
+    </main>
+
+    <aside class="phone-col">
+      <div class="phone" aria-label="Simulated iPhone screen">
+        <div class="screen" id="screen">
+          <div class="island"></div>
+
+          <div class="view" data-screen="home">
+            <div class="homegrid">
+              <div class="icon"></div><div class="icon"></div><div class="icon"></div><div class="icon"></div>
+              <div class="icon"></div><div class="icon app" id="appIcon"></div><div class="icon"></div><div class="icon"></div>
+              <div></div><div class="icon-label">LaunchLab</div><div></div><div></div>
+              <div class="icon"></div><div class="icon"></div><div class="icon"></div><div class="icon"></div>
+            </div>
+          </div>
+
+          <div class="view" data-screen="launch"></div>
+
+          <div class="view" data-screen="notes">
+            <div class="navtitle">Notes</div>
+            <div class="rows">
+              <div class="rowx" style="font-family:inherit;font-size:11px">Try the lab: <span style="color:#4f46e5;text-decoration:underline">launchlab://lab</span></div>
+            </div>
+          </div>
+
+          <div class="view ob" data-screen="onboarding">
+            <div class="logo"></div>
+            <h3>Welcome to LaunchLab</h3>
+            <p>Records every startup callback.</p>
+            <div class="pill-btn">Get started</div>
+          </div>
+
+          <div class="view" data-screen="timeline">
+            <div class="navtitle">Launch Timeline</div>
+            <div class="rows">
+              <div class="rowx">main() entered</div>
+              <div class="rowx">didFinishLaunching…</div>
+              <div class="rowx">willConnectTo</div>
+              <div class="rowx">makeKeyAndVisible</div>
+              <div class="rowx">viewDidAppear</div>
+            </div>
+            <div class="tabbar"><span class="sel">▤ Timeline</span><span>⚗ Lab</span></div>
+          </div>
+
+          <div class="view" data-screen="lab">
+            <div class="navtitle">Lifecycle Lab</div>
+            <div class="rows" style="gap:8px">
+              <div class="labbtn">Push a child</div>
+              <div class="labbtn">Present as sheet</div>
+              <div class="labbtn">Present full screen</div>
+              <div class="labbtn">Replace root</div>
+            </div>
+            <div class="tabbar"><span>▤ Timeline</span><span class="sel">⚗ Lab</span></div>
+          </div>
+
+          <div class="view" data-screen="detail">
+            <div style="color:#4f46e5;font-size:11px">‹ Lifecycle Lab</div>
+            <div class="navtitle">Detail (pushed)</div>
+            <div class="rows"><div class="rowx" style="font-family:inherit">Go back, then check the Timeline.</div></div>
+            <div class="tabbar"><span>▤ Timeline</span><span class="sel">⚗ Lab</span></div>
+          </div>
+
+          <div class="view" data-screen="full">
+            <div style="text-align:right;color:#4f46e5;font-size:11px">Close</div>
+            <div class="navtitle">Detail (full screen)</div>
+            <div class="rows"><div class="rowx" style="font-family:inherit">The Lab screen is no longer in the hierarchy.</div></div>
+          </div>
+
+          <div class="dim" id="dim"></div>
+          <div class="sheet" id="sheet">
+            <div style="text-align:right;color:#4f46e5;font-size:11px">Close</div>
+            <div class="navtitle">Detail (sheet)</div>
+            <div class="rowx" style="font-family:inherit">The Lab screen is still behind this sheet.</div>
+          </div>
+        </div>
+      </div>
+
+      <dl class="card status">
+        <dt>Process</dt><dd><span class="badge" id="stProcess">Not running</span></dd>
+        <dt>Scene</dt><dd><span class="badge" id="stScene">Unattached</span></dd>
+        <dt>Root VC</dt><dd><span class="badge" id="stRoot">nil</span></dd>
+      </dl>
+    </aside>
+  </div>
+
+  <footer>
+    Part of the <a href="../00-overview.md">iOS App Startup series</a>. Sample code: <a href="../sample/README.md">LaunchLab</a>.
+    The exact interleaving of Scene and View Controller callbacks can differ between iOS versions; the order shown is typical.
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const LANES = ["system", "app", "scene", "window", "vc"];
+  const LANE_NAMES = { system: "System", app: "AppDelegate", scene: "SceneDelegate", window: "UIWindow", vc: "View Controller" };
+  const LOG_LAYER = { system: "Process", app: "App", scene: "Scene", window: "Window", vc: "VC" };
+  const DD = "../05-deep-dives/";
+  const DEEP = {
+    system: [DD + "01-process-launch-and-main.md", "5.1 Process launch & main"],
+    app:    [DD + "02-uiapplication-and-appdelegate.md", "5.2 UIApplication & AppDelegate"],
+    scene:  [DD + "03-scenes-and-scenedelegate.md", "5.3 UIScene & SceneDelegate"],
+    window: [DD + "04-window-and-root-view-controller.md", "5.4 UIWindow & Root VC"],
+    vc:     [DD + "05-view-controller-lifecycle.md", "5.5 View Controller Lifecycle"]
+  };
+
+  // Each step: lane, call, text, code?, tip?, log?, screen?, sheet?, proc?, scene?, root?, tapIcon?
+  const COLD = [
+    { lane: "system", call: "Tap icon → launch screen", screen: "home", tapIcon: true, proc: "Not running", scene: "Unattached", root: "nil",
+      text: "The user taps LaunchLab. SpringBoard asks the system to launch the bundle and immediately animates in the launch screen. This is a static image built from UILaunchScreen in Info.plist, drawn before any of your code exists in memory." },
+    { lane: "system", call: "spawn process · dyld loads code", screen: "launch", proc: "Launching",
+      text: "The kernel creates the process (after verifying the code signature). dyld loads your binary plus UIKit and Foundation, applies pointer fixups, and runs static initialisers (+load, C++ constructors). All of this happens before main and counts toward launch time.",
+      tip: "Every dynamic framework you embed adds to this phase. Swift globals are lazy, so they don't run here." },
+    { lane: "system", call: "main()", screen: "launch", log: "main() entered",
+      code: "// main.swift (what @main generates for you)\nLaunchLog.shared.record(.process, \"main() entered\")\n_ = UIApplicationMain(CommandLine.argc, CommandLine.unsafeArgv,\n                      nil, NSStringFromClass(AppDelegate.self))",
+      text: "Your first line of code. UIApplicationMain creates the UIApplication singleton and your AppDelegate, reads Info.plist, starts the main run loop, and never returns." },
+    { lane: "app", call: "willFinishLaunchingWithOptions", screen: "launch", log: "willFinishLaunchingWithOptions",
+      text: "The first AppDelegate callback, delivered on the main run loop before state restoration. Rarely needed." },
+    { lane: "app", call: "didFinishLaunchingWithOptions", screen: "launch", log: "didFinishLaunchingWithOptions",
+      code: "func application(_ app: UIApplication,\n    didFinishLaunchingWithOptions opts: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {\n    AppServices.configure()   // crash reporting, DI, appearance…\n    return true\n}",
+      text: "Process-wide setup, once per process. In a scene-based app there is no window here: no UI work.",
+      tip: "Everything in this method sits between the tap and the first frame. Keep it cheap." },
+    { lane: "app", call: "configurationForConnecting", screen: "launch", log: "configurationForConnecting (role: UIWindowSceneSessionRoleApplication)",
+      code: "return UISceneConfiguration(name: \"Default Configuration\",\n                            sessionRole: connectingSceneSession.role)\n// Info.plist maps the name → $(PRODUCT_MODULE_NAME).SceneDelegate",
+      text: "The system needs UI, so it creates a scene session and asks which configuration to use. The configuration names the SceneDelegate class." },
+    { lane: "scene", call: "scene(_:willConnectTo:options:)", screen: "launch", log: "willConnectTo (session: 3F2A9C1B…)", scene: "Connecting",
+      code: "guard let windowScene = scene as? UIWindowScene else { return }\nlet window = UIWindow(windowScene: windowScene)",
+      text: "UIKit created a UIWindowScene and your SceneDelegate. This is where the UI for this window gets built. On iPad, each window gets its own scene and SceneDelegate, but there is still only one AppDelegate." },
+    { lane: "window", call: "rootViewController = Onboarding", screen: "launch", root: "OnboardingViewController",
+      code: "window.rootViewController = RootRouter.makeInitialRoot()\n// hasCompletedOnboarding == false → OnboardingViewController()",
+      text: "One router decides the root: onboarding on first launch, the tab bar afterwards. Everything the window shows hangs off this one controller." },
+    { lane: "vc", call: "Onboarding.loadView", screen: "launch", log: "OnboardingViewController.loadView",
+      text: "The window needs the root's view, so the view controller creates it. Override loadView only if you assign view = MyCustomView() yourself." },
+    { lane: "vc", call: "Onboarding.viewDidLoad", screen: "launch", log: "OnboardingViewController.viewDidLoad",
+      text: "Called once per view load. Build subviews and constraints here. Sizes are not final yet." },
+    { lane: "window", call: "rootViewController (logged)", screen: "launch", log: "rootViewController = OnboardingViewController",
+      text: "LaunchLab logs the window row right after the assignment, so it appears after viewDidLoad: assigning the root is typically enough to load its view." },
+    { lane: "window", call: "makeKeyAndVisible()", screen: "launch", log: "makeKeyAndVisible",
+      code: "self.window = window          // keep a strong reference!\nwindow.makeKeyAndVisible()\nif let url = connectionOptions.urlContexts.first?.url { … } // cold deep link",
+      text: "Shows the window and makes it key (it receives keyboard and other non-touch events). If you forget self.window = window, the window is deallocated and you get a black screen." },
+    { lane: "scene", call: "sceneWillEnterForeground", screen: "launch", log: "sceneWillEnterForeground", scene: "Foreground · inactive", proc: "Running",
+      text: "The scene is about to be visible. On launch and every return from background." },
+    { lane: "vc", call: "viewWillAppear / viewIsAppearing", screen: "launch", log: "OnboardingViewController.viewWillAppear · viewIsAppearing",
+      text: "Appearance callbacks for the root. viewIsAppearing (iOS 17, back-deployed to 13) has final traits and geometry, so it's the best place for appearance-time layout work." },
+    { lane: "scene", call: "sceneDidBecomeActive", screen: "launch", log: "sceneDidBecomeActive", scene: "Foreground · active",
+      text: "The scene is interactive. Resume media, games, the camera, and so on." },
+    { lane: "vc", call: "viewDidAppear → first frame", screen: "onboarding", log: "OnboardingViewController.viewDidAppear",
+      text: "The first frame is rendered and the launch screen goes away. Launch is complete; everything up to here is what Xcode Organizer reports as launch time.",
+      tip: "The relative order of Scene rows and View Controller rows here is typical, not guaranteed. Don't build logic on it." }
+  ];
+
+  const SCENARIOS = [
+    { id: "cold", name: "Cold launch", desc: "From tapping the icon to the first frame: system → main → AppDelegate → SceneDelegate → window → root view controller.", steps: COLD },
+    { id: "swap", name: "Root swap", desc: "Onboarding finishes and the window's root view controller is replaced by the main tab bar interface.",
+      start: { screen: "onboarding", proc: "Running", scene: "Foreground · active", root: "OnboardingViewController" },
+      steps: [
+        { lane: "vc", call: "tap “Get started”", screen: "onboarding",
+          code: "UIButton(configuration: config, primaryAction: UIAction { [weak self] _ in\n    guard let window = self?.view.window else { return }\n    RootRouter.finishOnboarding(in: window)\n})",
+          text: "The onboarding screen doesn't present the next screen. It asks the router to change the window's root." },
+        { lane: "window", call: "rootViewController → UITabBarController", screen: "onboarding", log: "rootViewController → UITabBarController", root: "UITabBarController",
+          code: "UIView.transition(with: window, duration: 0.35,\n                  options: .transitionCrossDissolve) {\n    window.rootViewController = RootRouter.makeMainInterface()\n}",
+          text: "A tab bar controller containing two navigation controllers becomes the root. The old hierarchy is removed." },
+        { lane: "vc", call: "Onboarding.viewWillDisappear", screen: "onboarding", log: "OnboardingViewController.viewWillDisappear",
+          text: "The old root gets disappearance callbacks, because its place in the hierarchy really changed." },
+        { lane: "vc", call: "Timeline.loadView · viewDidLoad", screen: "timeline", log: "TimelineViewController.loadView · viewDidLoad",
+          text: "The selected tab's top view controller loads. The Lab tab's controller does not load yet: tab contents are loaded lazily, the first time they're selected." },
+        { lane: "vc", call: "Timeline.viewWillAppear …", screen: "timeline", log: "TimelineViewController.viewWillAppear · viewIsAppearing",
+          text: "Containers forward appearance callbacks down to the visible child only: tab bar → navigation controller → Timeline." },
+        { lane: "vc", call: "Onboarding.viewDidDisappear", screen: "timeline", log: "OnboardingViewController.viewDidDisappear",
+          text: "With no strong references left, onboarding is deallocated." },
+        { lane: "vc", call: "Timeline.viewDidAppear", screen: "timeline", log: "TimelineViewController.viewDidAppear",
+          text: "The main UI is up. The scene never changed state during any of this; this is purely view-controller-level." }
+      ] },
+    { id: "bg", name: "Background & return", desc: "The user goes home and comes back. Only the scene layer is notified, so view controllers get no appearance callbacks.",
+      start: { screen: "timeline", proc: "Running", scene: "Foreground · active", root: "UITabBarController" },
+      steps: [
+        { lane: "scene", call: "sceneWillResignActive", screen: "timeline", log: "sceneWillResignActive", scene: "Foreground · inactive",
+          text: "An interruption or the start of the home gesture. Pause media or games here. This also fires for Control Center, incoming calls, and the app switcher." },
+        { lane: "scene", call: "sceneDidEnterBackground", screen: "home", log: "sceneDidEnterBackground", scene: "Background", proc: "Background",
+          text: "Not visible. Save state and hide sensitive UI: the system takes a snapshot for the app switcher right after this.",
+          tip: "Soon after, the process is usually suspended (no callback). If memory is needed, the system may disconnect the scene (sceneDidDisconnect) or kill the process (no callback)." },
+        { lane: "system", call: "(suspended)", screen: "home", proc: "Suspended",
+          text: "The app's code is frozen in memory. No callback is delivered for suspension." },
+        { lane: "scene", call: "sceneWillEnterForeground", screen: "timeline", log: "sceneWillEnterForeground", scene: "Foreground · inactive", proc: "Running",
+          text: "The user returns. Refresh anything that may be stale. There is no didFinishLaunching and no viewDidLoad: the process and views still exist." },
+        { lane: "scene", call: "sceneDidBecomeActive", screen: "timeline", log: "sceneDidBecomeActive", scene: "Foreground · active",
+          text: "Interactive again." },
+        { lane: "vc", call: "(no viewWillAppear!)", screen: "timeline",
+          code: "// To react in a view controller, observe the scene instead:\nNotificationCenter.default.addObserver(self, selector: #selector(refresh),\n    name: UIScene.willEnterForegroundNotification,\n    object: view.window?.windowScene)",
+          text: "The Timeline controller never left the view hierarchy, so it gets no appearance callbacks. Foreground isn't appearance, and this is one of the most common UIKit misunderstandings." },
+        { lane: "app", call: "(no applicationDidBecomeActive)", screen: "timeline",
+          text: "In a scene-based app, the AppDelegate's applicationDidBecomeActive / DidEnterBackground family is not called. Those events belong to scenes now." }
+      ] },
+    { id: "warm", name: "Deep link · warm", desc: "launchlab://lab is opened while the app is running in the background. The URL arrives in scene(_:openURLContexts:).",
+      start: { screen: "notes", proc: "Background", scene: "Background", root: "UITabBarController" },
+      steps: [
+        { lane: "system", call: "open launchlab://lab", screen: "notes",
+          text: "The user taps a link in Notes. The system finds the app that registered the launchlab URL scheme (CFBundleURLTypes in Info.plist)." },
+        { lane: "scene", call: "sceneWillEnterForeground", screen: "timeline", log: "sceneWillEnterForeground", scene: "Foreground · inactive", proc: "Running",
+          text: "The existing scene comes forward." },
+        { lane: "scene", call: "scene(_:openURLContexts:)", screen: "timeline", log: "openURLContexts: launchlab://lab",
+          code: "func scene(_ scene: UIScene, openURLContexts ctx: Set<UIOpenURLContext>) {\n    guard let url = ctx.first?.url, let window else { return }\n    DeepLinkHandler.handle(url, in: window)\n}",
+          text: "Because the scene was already connected, the URL arrives here." },
+        { lane: "window", call: "tabs.selectedIndex = 1", screen: "lab",
+          text: "The handler inspects the root (a UITabBarController) and selects the Lab tab." },
+        { lane: "vc", call: "Lab.viewDidLoad … viewDidAppear", screen: "lab", log: "LifecycleLabViewController.viewDidLoad · viewWillAppear · viewDidAppear",
+          text: "First time the Lab tab is shown, so it loads now and then appears." },
+        { lane: "scene", call: "sceneDidBecomeActive", screen: "lab", log: "sceneDidBecomeActive", scene: "Foreground · active",
+          text: "Done. Compare with the cold version, where this method is never called." }
+      ] },
+    { id: "coldlink", name: "Deep link · cold", desc: "The app isn't running. The full launch happens and the URL arrives inside connectionOptions, not openURLContexts.",
+      start: { screen: "notes", proc: "Not running", scene: "Unattached", root: "nil" },
+      steps: [
+        { lane: "system", call: "open launchlab://lab", screen: "notes",
+          text: "Same tap as the warm case, but the process doesn't exist." },
+        { lane: "system", call: "launch: dyld → main()", screen: "launch", log: "main() entered", proc: "Launching",
+          text: "Exactly the cold-launch path: process, dyld, main, UIApplicationMain." },
+        { lane: "app", call: "didFinishLaunching · configurationForConnecting", screen: "launch", log: "didFinishLaunchingWithOptions · configurationForConnecting",
+          text: "AppDelegate as usual." },
+        { lane: "scene", call: "willConnectTo (with URL)", screen: "launch", log: "willConnectTo (session: 7B10E4D2…)", scene: "Connecting",
+          text: "The scene connects. options.urlContexts contains launchlab://lab." },
+        { lane: "window", call: "root + makeKeyAndVisible", screen: "launch", log: "rootViewController = UITabBarController · makeKeyAndVisible", root: "UITabBarController",
+          text: "Onboarding was completed earlier, so the router returns the tab bar." },
+        { lane: "scene", call: "connectionOptions.urlContexts", screen: "launch", log: "cold-launch URL: launchlab://lab",
+          code: "if let url = connectionOptions.urlContexts.first?.url {\n    DeepLinkHandler.handle(url, in: window)   // same handler as warm\n}",
+          text: "Handle the URL right here. scene(_:openURLContexts:) will NOT be called for this URL.",
+          tip: "Common bug: handling links only in openURLContexts. They work while the app is running and do nothing after it was killed." },
+        { lane: "scene", call: "foreground → active", screen: "lab", log: "sceneWillEnterForeground · sceneDidBecomeActive", scene: "Foreground · active", proc: "Running",
+          text: "First frame shows the Lab tab directly." }
+      ] },
+    { id: "nav", name: "Push vs sheet vs full screen", desc: "Three ways to show a new screen fire three different sets of callbacks on the presenting view controller.",
+      start: { screen: "lab", proc: "Running", scene: "Foreground · active", root: "UITabBarController" },
+      steps: [
+        { lane: "vc", call: "push Detail", screen: "lab",
+          code: "navigationController?.pushViewController(DetailViewController(style: \"pushed\"), animated: true)",
+          text: "Push onto the Lab tab's navigation controller." },
+        { lane: "vc", call: "Lab.viewWillDisappear · Detail.viewWillAppear", screen: "detail", log: "Lab.viewWillDisappear · Detail.viewDidLoad · Detail.viewWillAppear",
+          text: "The navigation controller swaps its visible child, so both get callbacks." },
+        { lane: "vc", call: "Lab.viewDidDisappear · Detail.viewDidAppear", screen: "detail", log: "Lab.viewDidDisappear · Detail.viewDidAppear",
+          text: "Going back reverses this, and Detail is deallocated." },
+        { lane: "vc", call: "back · present as .pageSheet", screen: "lab", sheet: true, log: "Detail(sheet).viewDidLoad · viewWillAppear · viewDidAppear",
+          code: "let nav = UINavigationController(rootViewController: DetailViewController(style: \"sheet\"))\npresent(nav, animated: true)   // default style since iOS 13: .pageSheet",
+          text: "Only the sheet gets callbacks. The Lab controller does NOT get viewWillDisappear: it's still in the hierarchy, visible behind the sheet." },
+        { lane: "vc", call: "dismiss · present .fullScreen", screen: "full", log: "Lab.viewWillDisappear · Detail(full).viewDidAppear · Lab.viewDidDisappear",
+          code: "nav.modalPresentationStyle = .fullScreen\npresent(nav, animated: true)",
+          text: "Full-screen presentation removes the presenter's view, so the presenter gets disappearance callbacks.",
+          tip: "If you refresh data in viewWillAppear, it runs after a full-screen modal closes but not after a sheet closes. Use a delegate or callback for sheets." }
+      ] }
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  const tabsEl = $("tabs"), laneBody = $("laneBody"), detail = $("detail"), logEl = $("log");
+  let scenario = SCENARIOS[0], idx = -1, timer = null;
+
+  // Allow line breaks after dots, parens and colons instead of mid-word.
+  function chipText(s) { return esc(s).replace(/([.(:\/·])/g, "$1<wbr>"); }
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+  function buildTabs() {
+    SCENARIOS.forEach((s, i) => {
+      const b = document.createElement("button");
+      b.className = "tab"; b.role = "tab"; b.textContent = s.name;
+      b.setAttribute("aria-selected", i === 0 ? "true" : "false");
+      b.addEventListener("click", () => selectScenario(i));
+      tabsEl.appendChild(b);
+    });
+  }
+
+  function selectScenario(i) {
+    stop();
+    scenario = SCENARIOS[i];
+    [...tabsEl.children].forEach((b, j) => b.setAttribute("aria-selected", j === i ? "true" : "false"));
+    $("scenarioDesc").textContent = scenario.desc;
+    try { localStorage.setItem("launchSeq.scenario", scenario.id); } catch (e) {}
+    buildLanes();
+    go(-1);
+  }
+
+  function buildLanes() {
+    laneBody.innerHTML = "";
+    scenario.steps.forEach((st, i) => {
+      const row = document.createElement("div");
+      row.className = "lane-row";
+      row.dataset.i = i;
+      let html = '<div class="num">' + (i + 1) + "</div>";
+      LANES.forEach(l => {
+        html += l === st.lane
+          ? '<div><span class="chip ' + l + '" data-lane="' + LANE_NAMES[l] + '">' + chipText(st.call) + "</span></div>"
+          : '<div class="empty"></div>';
+      });
+      row.innerHTML = html;
+      row.addEventListener("click", () => { stop(); go(i); });
+      laneBody.appendChild(row);
+    });
+  }
+
+  function stateAt(i) {
+    const s = Object.assign({ screen: "home", proc: "Not running", scene: "Unattached", root: "nil", sheet: false }, scenario.start || {});
+    for (let k = 0; k <= i; k++) {
+      const st = scenario.steps[k];
+      ["screen", "proc", "scene", "root"].forEach(key => { if (st[key] !== undefined) s[key] = st[key]; });
+      s.sheet = !!st.sheet;
+    }
+    return s;
+  }
+
+  function go(i) {
+    idx = Math.max(-1, Math.min(i, scenario.steps.length - 1));
+    const n = scenario.steps.length;
+
+    [...laneBody.children].forEach((row, j) => {
+      row.classList.toggle("current", j === idx);
+      row.classList.toggle("future", j > idx);
+    });
+    const cur = laneBody.children[idx];
+    if (cur) {
+      const top = cur.offsetTop - laneBody.offsetTop, h = laneBody.clientHeight;
+      if (top < laneBody.scrollTop || top > laneBody.scrollTop + h - cur.offsetHeight) laneBody.scrollTop = top - h / 3;
+    } else laneBody.scrollTop = 0;
+
+    // Phone + status
+    const s = stateAt(idx);
+    document.querySelectorAll(".view").forEach(v => v.classList.toggle("on", v.dataset.screen === s.screen));
+    $("sheet").classList.toggle("on", s.sheet);
+    $("dim").classList.toggle("on", s.sheet);
+    $("appIcon").classList.toggle("tapped", idx >= 0 && !!scenario.steps[idx].tapIcon);
+    $("stProcess").textContent = s.proc;
+    $("stScene").textContent = s.scene;
+    $("stRoot").textContent = s.root;
+
+    // Detail card
+    if (idx < 0) {
+      detail.innerHTML = '<div class="lane-tag" style="color:var(--muted)">Ready</div><h2>' + esc(scenario.name) + "</h2><p>" +
+        esc(scenario.desc) + "</p><p class=\"tip\">Press <strong>Next</strong> or <strong>Play</strong> to start, or click any row in the lanes below.</p>";
+    } else {
+      const st = scenario.steps[idx];
+      const deep = DEEP[st.lane];
+      detail.innerHTML =
+        '<div class="lane-tag" style="color:var(--lane-' + st.lane + ')">' + LANE_NAMES[st.lane] + "</div>" +
+        "<h2>" + esc(st.call) + "</h2>" +
+        "<p>" + esc(st.text) + "</p>" +
+        (st.code ? "<pre><code>" + esc(st.code) + "</code></pre>" : "") +
+        (st.tip ? '<p class="tip">' + esc(st.tip) + "</p>" : "") +
+        '<p class="deep">Read more: <a href="' + deep[0] + '">' + deep[1] + "</a></p>";
+    }
+
+    // Log
+    logEl.innerHTML = "";
+    let ms = 140.0;
+    for (let k = 0; k <= idx; k++) {
+      const st = scenario.steps[k];
+      ms += scenario.id === "cold" || scenario.id === "coldlink" ? (k < 3 ? 1.2 : 0.8) : 0;
+      if (!st.log) continue;
+      const li = document.createElement("li");
+      if (k === idx) li.className = "new";
+      const t = (scenario.id === "cold" || scenario.id === "coldlink") ? " +" + ms.toFixed(1) + " ms " : " ";
+      li.innerHTML = '<span class="ly ' + st.lane + '">' + LOG_LAYER[st.lane] + "</span>" + esc(t) + esc(st.log);
+      logEl.appendChild(li);
+    }
+    if (!logEl.children.length) logEl.innerHTML = '<li style="color:var(--muted)">No events yet</li>';
+    logEl.scrollTop = logEl.scrollHeight;
+
+    // Controls
+    $("counter").textContent = (idx + 1) + " / " + n;
+    $("bar").style.width = ((idx + 1) / n * 100) + "%";
+    $("prev").disabled = idx < 0;
+    $("next").disabled = idx >= n - 1;
+  }
+
+  function play() {
+    if (timer) return stop();
+    if (idx >= scenario.steps.length - 1) go(-1);
+    $("play").textContent = "⏸ Pause";
+    timer = setInterval(() => {
+      if (idx >= scenario.steps.length - 1) return stop();
+      go(idx + 1);
+    }, 1800);
+    go(idx + 1);
+  }
+  function stop() {
+    if (timer) clearInterval(timer);
+    timer = null;
+    $("play").textContent = "▶ Play";
+  }
+
+  $("next").addEventListener("click", () => { stop(); go(idx + 1); });
+  $("prev").addEventListener("click", () => { stop(); go(idx - 1); });
+  $("reset").addEventListener("click", () => { stop(); go(-1); });
+  $("play").addEventListener("click", play);
+  document.addEventListener("keydown", (e) => {
+    if (e.target.closest && e.target.closest("button") && (e.key === " " || e.key === "Enter")) return;
+    if (e.key === "ArrowRight") { stop(); go(idx + 1); e.preventDefault(); }
+    else if (e.key === "ArrowLeft") { stop(); go(idx - 1); e.preventDefault(); }
+    else if (e.key === " ") { play(); e.preventDefault(); }
+  });
+
+  buildTabs();
+  let start = 0;
+  try {
+    const saved = localStorage.getItem("launchSeq.scenario");
+    const j = SCENARIOS.findIndex(s => s.id === saved);
+    if (j >= 0) start = j;
+  } catch (e) {}
+  selectScenario(start);
+})();
+</script>
+</body>
+</html>
