@@ -1,0 +1,19 @@
+{
+  "articles": {
+    "note": "CSDN publish record for apple-code-signing-guide (column: Apple 代码签名深度解析). 'src' is repo-root-relative.",
+    "00-overview.md": {
+      "src": "apple-code-signing-guide/zh/00-overview.md",
+      "articleId": "170743281",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/170743281",
+      "title": "00 · Apple 代码签名深度解析：系列导读",
+      "published": "2026-11-13"
+    },
+    "01-why.md": {
+      "src": "apple-code-signing-guide/zh/01-why.md",
+      "articleId": "170771329",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/170771329",
+      "title": "01 · 为什么需要代码签名",
+      "published": "2026-11-14"
+    }
+  }
+}
