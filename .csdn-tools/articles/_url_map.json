@@ -21,6 +21,20 @@
       "url": "https://blog.csdn.net/PhilZhou/article/details/170771433",
       "title": "02 · Apple 代码签名是什么，又不是什么",
       "published": "2026-11-14"
+    },
+    "03-concept-map.md": {
+      "src": "apple-code-signing-guide/zh/03-concept-map.md",
+      "articleId": "170814460",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/170814460",
+      "title": "03 · 概念全景图",
+      "published": "2026-11-15"
+    },
+    "04-running-example.md": {
+      "src": "apple-code-signing-guide/zh/04-running-example.md",
+      "articleId": "170814501",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/170814501",
+      "title": "04 · 贯穿示例：发布 PawPal",
+      "published": "2026-11-15"
     }
   }
 }
