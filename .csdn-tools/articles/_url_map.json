@@ -35,6 +35,20 @@
       "url": "https://blog.csdn.net/PhilZhou/article/details/170814501",
       "title": "04 · 贯穿示例：发布 PawPal",
       "published": "2026-11-15"
+    },
+    "05-deep-dives/01-developer-account-and-team.md": {
+      "src": "apple-code-signing-guide/zh/05-deep-dives/01-developer-account-and-team.md",
+      "articleId": "170842905",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/170842905",
+      "title": "05.1 · 开发者账号与团队",
+      "published": "2026-11-16"
+    },
+    "05-deep-dives/02-signing-certificates.md": {
+      "src": "apple-code-signing-guide/zh/05-deep-dives/02-signing-certificates.md",
+      "articleId": "170843311",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/170843311",
+      "title": "05.2 · 签名证书与私钥",
+      "published": "2026-11-16"
     }
   }
 }
