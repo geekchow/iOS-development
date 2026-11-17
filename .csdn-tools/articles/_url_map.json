@@ -49,6 +49,20 @@
       "url": "https://blog.csdn.net/PhilZhou/article/details/170843311",
       "title": "05.2 · 签名证书与私钥",
       "published": "2026-11-16"
+    },
+    "05-deep-dives/03-app-ids-and-entitlements.md": {
+      "src": "apple-code-signing-guide/zh/05-deep-dives/03-app-ids-and-entitlements.md",
+      "articleId": "170915723",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/170915723",
+      "title": "05.3 · App ID、能力与 Entitlements",
+      "published": "2026-11-17"
+    },
+    "05-deep-dives/04-devices.md": {
+      "src": "apple-code-signing-guide/zh/05-deep-dives/04-devices.md",
+      "articleId": "170915852",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/170915852",
+      "title": "05.4 · 注册设备",
+      "published": "2026-11-17"
     }
   }
 }
