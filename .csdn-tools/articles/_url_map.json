@@ -63,6 +63,20 @@
       "url": "https://blog.csdn.net/PhilZhou/article/details/170915852",
       "title": "05.4 · 注册设备",
       "published": "2026-11-17"
+    },
+    "05-deep-dives/05-provisioning-profiles.md": {
+      "src": "apple-code-signing-guide/zh/05-deep-dives/05-provisioning-profiles.md",
+      "articleId": "171102535",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/171102535",
+      "title": "05.5 · 描述文件",
+      "published": "2026-11-20"
+    },
+    "05-deep-dives/06-codesign-and-the-signature.md": {
+      "src": "apple-code-signing-guide/zh/05-deep-dives/06-codesign-and-the-signature.md",
+      "articleId": "171102680",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/171102680",
+      "title": "05.6 · codesign 与应用内的签名",
+      "published": "2026-11-20"
     }
   }
 }
