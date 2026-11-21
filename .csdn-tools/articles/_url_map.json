@@ -77,6 +77,20 @@
       "url": "https://blog.csdn.net/PhilZhou/article/details/171102680",
       "title": "05.6 · codesign 与应用内的签名",
       "published": "2026-11-20"
+    },
+    "05-deep-dives/07-on-device-verification.md": {
+      "src": "apple-code-signing-guide/zh/05-deep-dives/07-on-device-verification.md",
+      "articleId": "171138655",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/171138655",
+      "title": "05.7 · 设备端校验：installd、AMFI 与内核",
+      "published": "2026-11-21"
+    },
+    "05-deep-dives/08-distribution-and-resigning.md": {
+      "src": "apple-code-signing-guide/zh/05-deep-dives/08-distribution-and-resigning.md",
+      "articleId": "171138801",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/171138801",
+      "title": "05.8 · 分发与 Apple 重签名",
+      "published": "2026-11-21"
     }
   }
 }
