@@ -91,6 +91,20 @@
       "url": "https://blog.csdn.net/PhilZhou/article/details/171138801",
       "title": "05.8 · 分发与 Apple 重签名",
       "published": "2026-11-21"
+    },
+    "06-walkthrough.md": {
+      "src": "apple-code-signing-guide/zh/06-walkthrough.md",
+      "articleId": "171185073",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/171185073",
+      "title": "06 · 完整演练：PawPal 从头到尾",
+      "published": "2026-11-22"
+    },
+    "07-next-steps.md": {
+      "src": "apple-code-signing-guide/zh/07-next-steps.md",
+      "articleId": "171185227",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/171185227",
+      "title": "07 · 故障排查、CI 实践与下一步",
+      "published": "2026-11-22"
     }
   }
 }
