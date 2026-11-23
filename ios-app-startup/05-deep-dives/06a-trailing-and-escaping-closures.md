@@ -163,6 +163,36 @@ UIAction { [weak self] _ in
 }
 ```
 
+### 3.1 Reading the header `[weak self] _ in`
+
+Every closure with parameters has the same shape: `{ [captures] parameters in body }`. Here each slot is filled for a specific reason:
+
+```text
+{  [weak self]     _          in     guard let window = ...
+   └ capture list  └ parameter └ separator  └ body
+```
+
+| Token | Required? | Why it is written this way |
+|---|---|---|
+| `[weak self]` | Optional syntax, but needed here | A **capture list**: it decides *how* the closure holds outside values. Without it, `self` is captured strongly. Because the closure is **escaping** (stored by the button), a strong `self` would close the cycle VC → button → action → closure → VC. `weak` makes `self` an Optional that becomes `nil` when the controller is freed. |
+| `_` | **Yes**, a placeholder is required | The handler type is `(UIAction) -> Void`, so the closure **must** accept one argument. This code doesn't use it, so `_` means "accept it, give it no name." Writing `{ [weak self] in ... }` with no parameter is a compile error: *"Contextual type for closure argument list expects 1 argument."* If you needed it, you'd name it: `{ [weak self] action in ... }`. |
+| `in` | Yes, whenever there's a capture list or a parameter list | Separates the header (captures + parameters) from the body. A closure with neither, like `{ print("hi") }`, has no `in`. |
+
+The order is fixed: the capture list always comes first, then the parameters, then `in`.
+
+Some variants, to show which part does what:
+
+```swift
+UIAction { _ in ... }                        // no capture list: self captured strongly (leak risk here)
+UIAction { [weak self] action in ... }       // parameter named, so you can use action.sender
+UIAction { [weak self] (_: UIAction) in ... } // same as `_ in`, with the type spelled out
+UIAction { [weak self] in ... }              // ✗ error: closure must take one argument
+```
+
+Nothing about the header comes from the closure being *trailing*. You would write exactly the same `[weak self] _ in` in `UIAction(handler: { [weak self] _ in ... })`. The `[weak self]` exists because the closure is **escaping**. The `_` exists because of the **handler's type**.
+
+### 3.2 Trailing and escaping, applied
+
 | Aspect | What it is here |
 |---|---|
 | **Trailing?** | Yes. `handler:` is the last parameter, written outside the parentheses, and the empty `()` is dropped. |
