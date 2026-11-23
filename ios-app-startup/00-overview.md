@@ -27,6 +27,7 @@ Each of these comes down to the same thing: **knowing which object owns which pa
 | 5.4 | [UIWindow & the Root View Controller](05-deep-dives/04-window-and-root-view-controller.md) | How does the first screen get chosen, and how do I swap it? |
 | 5.5 | [The View Controller Lifecycle](05-deep-dives/05-view-controller-lifecycle.md) | `viewDidLoad`, `viewWillAppear`, … when exactly? |
 | 5.6 | [Closures in Practice: the "Get started" button](05-deep-dives/06-onboarding-button-closure.md) | Why `[weak self]`, and why read `view.window` at tap time? |
+| 5.6a | [Sidebar: Trailing vs. Escaping Closures](05-deep-dives/06a-trailing-and-escaping-closures.md) | What's the difference between a trailing and an escaping closure? |
 | 6 | [Full walkthrough](06-walkthrough.md) | One launch, end to end, at full depth |
 | 7 | [Pitfalls & next steps](07-next-steps.md) | Common mistakes, SwiftUI, launch performance |
 

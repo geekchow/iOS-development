@@ -12,7 +12,7 @@ let button = UIButton(configuration: config, primaryAction: UIAction { [weak sel
 })
 ```
 
-Four lines, but they touch five Swift/UIKit ideas: trailing closures, escaping closures, capture lists, optional chaining, and deferred evaluation.
+Four lines, but they touch five Swift/UIKit ideas: trailing closures, escaping closures, capture lists, optional chaining, and deferred evaluation. (For a fuller treatment of the first two, see the sidebar [5.6a — Trailing vs. Escaping Closures](06a-trailing-and-escaping-closures.md).)
 
 ---
 
