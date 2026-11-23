@@ -1,6 +1,6 @@
 # 5.5 — The View Controller Lifecycle
 
-> **Where you are:** fifth and last deep dive. One screen's life.
+> **Where you are:** fifth deep dive. One screen's life.
 > **What you'll know after this file:** every lifecycle callback and what belongs in it, how appearance callbacks propagate through containers, the push / sheet / full-screen differences, and the "foreground isn't appearance" rule.
 
 ## Role recap
@@ -99,7 +99,7 @@ NotificationCenter.default.addObserver(
 | Forgot `super.viewWillAppear(animated)` etc. | Subtle bugs in containers and appearance forwarding |
 | Accessing `view` in `init` | View loads early, before dependencies are set |
 | Expensive work in `viewDidLayoutSubviews` | Janky scrolling and rotation, because it runs repeatedly |
-| Retain cycle (closure captures `self` strongly) | `deinit` never runs, screens leak |
+| Retain cycle (closure captures `self` strongly) | `deinit` never runs, screens leak (worked example in [5.6](06-onboarding-button-closure.md)) |
 
 ---
-← [5.4 — Window & Root VC](04-window-and-root-view-controller.md) · Next → [06 — Full walkthrough](../06-walkthrough.md) · [Concept map](../03-concept-map.md)
+← [5.4 — Window & Root VC](04-window-and-root-view-controller.md) · Next → [5.6 — Closures in practice](06-onboarding-button-closure.md) · [Concept map](../03-concept-map.md)

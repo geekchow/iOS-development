@@ -1,6 +1,6 @@
 # Part 6 — Full Walkthrough: One LaunchLab Launch, End to End
 
-> **Where you are:** Stage 6. The running example replayed at full depth, stitched together from all five deep dives.
+> **Where you are:** Stage 6. The running example replayed at full depth, stitched together from all six deep dives.
 > **What you'll know after this file:** every hop from tap to first frame and beyond, with the code that runs and the Timeline row it produces.
 
 ## The annotated sequence
@@ -93,7 +93,7 @@ VC     · OnboardingViewController.viewDidAppear
 ```
 The render server draws the first frame and the launch screen is replaced. **This is the end of launch.** Everything from ① to here is what Xcode Organizer reports as launch time.
 
-### ⑥ Root swap (→ 5.4, 5.5)
+### ⑥ Root swap (→ 5.4, 5.5, 5.6)
 *Get started* → `RootRouter.finishOnboarding(in:)` stores the flag and cross-dissolves the window's root to a new `UITabBarController`:
 ```
 Window · rootViewController → UITabBarController
@@ -105,7 +105,7 @@ VC     · TimelineViewController.viewWillAppear
 VC     · OnboardingViewController.viewDidDisappear
 VC     · TimelineViewController.viewDidAppear
 ```
-Onboarding is released (nothing else references it). The Lab tab's VC hasn't loaded yet: tab contents load lazily.
+Onboarding is released (nothing else references it; the button's `[weak self]` closure is what keeps that true, see [5.6](05-deep-dives/06-onboarding-button-closure.md)). The Lab tab's VC hasn't loaded yet: tab contents load lazily.
 
 ### ⑦ Background and back (→ 5.3, 5.5)
 ```
@@ -138,4 +138,4 @@ Part 1 asked for a design that gets from tap to first frame quickly, separates p
 | URLs arriving in either state | `connectionOptions` (cold) + `openURLContexts` (warm) → one handler |
 
 ---
-← [5.5 — View Controller Lifecycle](05-deep-dives/05-view-controller-lifecycle.md) · Next → [07 — Pitfalls & next steps](07-next-steps.md) · [Concept map](03-concept-map.md)
+← [5.6 — Closures in practice](05-deep-dives/06-onboarding-button-closure.md) · Next → [07 — Pitfalls & next steps](07-next-steps.md) · [Concept map](03-concept-map.md)

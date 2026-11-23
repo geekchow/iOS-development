@@ -51,6 +51,7 @@ Sam pushes a detail screen, presents a sheet, and presents a full-screen modal. 
 | 5.3 UIScene & SceneDelegate | 4, 5, 8, 9 |
 | 5.4 UIWindow & root VC | 5, 7, 9 |
 | 5.5 View controller lifecycle | 6, 7, 8, 10 |
+| 5.6 Closures in practice | 7 |
 
 The [interactive demo](demo/launch-sequence.html) animates steps 1–10 lane by lane.
 
