@@ -105,6 +105,14 @@
       "url": "https://blog.csdn.net/PhilZhou/article/details/171185227",
       "title": "07 · 故障排查、CI 实践与下一步",
       "published": "2026-11-22"
+    },
+    "ios-app-startup/00-overview.md": {
+      "src": "ios-app-startup/zh/00-overview.md",
+      "articleId": "171350261",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/171350261",
+      "title": "00 · iOS 应用启动入门：系列导读",
+      "column": "iOS 应用启动入门",
+      "published": "2026-11-25"
     }
   }
 }
