@@ -113,6 +113,46 @@
       "title": "00 · iOS 应用启动入门：系列导读",
       "column": "iOS 应用启动入门",
       "published": "2026-11-25"
+    },
+    "ios-app-startup/01-why.md": {
+      "src": "ios-app-startup/zh/01-why.md",
+      "articleId": "171350985",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/171350985",
+      "title": "01 · 启动架构为什么长这样",
+      "column": "iOS 应用启动入门",
+      "published": "2026-11-25"
+    },
+    "ios-app-startup/02-what.md": {
+      "src": "ios-app-startup/zh/02-what.md",
+      "articleId": "171438653",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/171438653",
+      "title": "02 · 「应用启动」是什么，又不是什么",
+      "column": "iOS 应用启动入门",
+      "published": "2026-11-26"
+    },
+    "ios-app-startup/03-concept-map.md": {
+      "src": "ios-app-startup/zh/03-concept-map.md",
+      "articleId": "171438698",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/171438698",
+      "title": "03 · 概念地图",
+      "column": "iOS 应用启动入门",
+      "published": "2026-11-26"
+    },
+    "ios-app-startup/04-running-example.md": {
+      "src": "ios-app-startup/zh/04-running-example.md",
+      "articleId": "171496539",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/171496539",
+      "title": "04 · 贯穿示例：LaunchLab",
+      "column": "iOS 应用启动入门",
+      "published": "2026-11-27"
+    },
+    "ios-app-startup/05-deep-dives/01-process-launch-and-main.md": {
+      "src": "ios-app-startup/zh/05-deep-dives/01-process-launch-and-main.md",
+      "articleId": "171496635",
+      "url": "https://blog.csdn.net/PhilZhou/article/details/171496635",
+      "title": "05.1 · 进程启动与 main",
+      "column": "iOS 应用启动入门",
+      "published": "2026-11-27"
     }
   }
 }
